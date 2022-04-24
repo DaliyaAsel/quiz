@@ -11,10 +11,16 @@ const Question = () => {
         <div>
             <div className="question">{currentQuestion.question}</div>
             <div className="answers">
-                <Answer />
-                <Answer />
-                <Answer />
-                <Answer />
+                {
+                    stateContext.answers.map((answer, i) => (
+                        <Answer key={i} 
+                        index={i}
+                        answerText={answer} 
+                        correctAnswer={currentQuestion.correctAnswer}
+                        currentAnswer={stateContext.currentAnswer}
+                        onSelectAnswer={(answerUsers) => dispatch({ type: "SELETC_ANSWER", payload: answerUsers })} />
+                    ))
+                }
             </div>
 
         </div>

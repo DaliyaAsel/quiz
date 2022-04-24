@@ -1,29 +1,55 @@
 import { createContext, useReducer } from "react";
-import data from '../data';
+
+import { shuffleAnswer, normalizeQuestions } from '../helpers';
 
 
 const initialState = {
-    questions: data,
+    questions: [],
     currentQuestionIndex: 0,
     error: "Error",
     showResults: false,
+    answers: [],
+    currentAnswer: '',
+    countCorrectAnswers: 0,
 }
 
 const reducer = (state, action) => {
-    if (action.type === "NEXT_QUESTION") {
-        const showResults = state.currentQuestionIndex === state.questions.length - 1; //возвращает true или false
-        const currentQuestionIndex = showResults ? state.currentQuestionIndex : state.currentQuestionIndex + 1; //если квиз закончен, то мы не должны увеличивать индекс
-        return {
-            ...state,
-            currentQuestionIndex,
-            showResults, //либо мы ее всегда перезаписываем на false пока не закончим квиз, либо на true, если вопросы закончились.
-        }
+    switch (action.type) {
+        case "NEXT_QUESTION":
+            const showResults = state.currentQuestionIndex === state.questions.length - 1; //возвращает true или false
+            const currentQuestionIndex = showResults ? state.currentQuestionIndex : state.currentQuestionIndex + 1; //если квиз закончен, то мы не должны увеличивать индекс
+            const answers = showResults ? [] : shuffleAnswer(state.questions[currentQuestionIndex]);
+            return {
+                ...state,
+                currentQuestionIndex,
+                showResults, //либо мы ее всегда перезаписываем на false пока не закончим квиз, либо на true, если вопросы закончились.
+                answers,
+                currentAnswer: '',
+            }
+        case "RESTART":
+            return initialState;
+
+        case "SELETC_ANSWER":
+            const countCorrectAnswers = action.payload === state.questions[state.currentQuestionIndex].correctAnswer ? state.countCorrectAnswers + 1 : state.countCorrectAnswers;
+            return {
+                ...state,
+                currentAnswer: action.payload,
+                countCorrectAnswers,
+            }
+
+        case "LOADED_QUESTIONS":
+            const normalizeQ = normalizeQuestions(action.payload);
+            return {
+                ...state,
+                questions: normalizeQ,
+                answers: shuffleAnswer(normalizeQ[0]),
+            };
+
+        default:
+            return state;
     }
-    if(action.type === "RESTART") {
-        return initialState
-    }
-    return state;
 }
+
 
 export const QuizContext = createContext();
 
